@@ -1,0 +1,35 @@
+{% extends "base.jinja" %}
+{% block content %}
+  <h5>Register</h5>
+  <div class="row">
+    <form method="post" class="col s12">
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="text" name="username" class="validate">
+          <label for="icon_prefix">Username</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="password" name="password" class="validate">
+          <label for="icon_prefix">Password</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="password" name="confirm_password" class="validate">
+          <label for="icon_prefix">Confirm Password</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="email" name="email" class="validate">
+          <label for="icon_prefix">Email Address</label>
+          <button class="btn waves-effect waves-light" type="submit">Submit
+            <i class="material-icons right">send</i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}
