@@ -11,13 +11,25 @@
           <select name="location" class="browser-default">
             <option value="" disabled selected>Choose your option</option>
             {% for row in locations %}
-              <option value={{row}}>{{row}}</option>
+              <option value={{row[0]}}>{{row[0]}}</option>
             {% endfor %}
           </select>
-          <button class="btn waves-effect waves-light" type="submit">Submit
-            <i class="material-icons right">send</i>
-          </button>
         </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s3">
+          <input id="icon_prefix" type="text" name="start_date" class="validate">
+          <label for="icon_prefix">Start Date (2015-01-01)</label>
+        </div>
+        <div class="input-field col s3">
+          <input id="icon_prefix" type="text" name="end_date" class="validate">
+          <label for="icon_prefix">End Date (2015-01-02)</label>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn waves-effect waves-light" type="submit">Submit
+          <i class="material-icons right">send</i>
+        </button>
       </div>
     </form>
   </div>

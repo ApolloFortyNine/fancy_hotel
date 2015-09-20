@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, session
 from flask import redirect, url_for
-import sqlite3
+from pymysql import connect
 
 app = Flask(__name__)
 app.secret_key = 'not_secret_at_all'
@@ -9,7 +9,7 @@ app.secret_key = 'not_secret_at_all'
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        conn = sqlite3.connect('fancy_hotel.db')
+        conn = get_connection()
         c = conn.cursor()
         query_str = """SELECT username, password FROM users WHERE username='{0}'""".format(request.form['username'])
         c.execute(query_str)
@@ -31,7 +31,7 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        conn = sqlite3.connect('fancy_hotel.db')
+        conn = get_connection()
         c = conn.cursor()
         query_str = """SELECT username FROM users WHERE username='{0}'""".format(request.form['username'])
         c.execute(query_str)
@@ -53,12 +53,43 @@ def register():
 def search_rooms():
     if 'username' not in session:
         return redirect(url_for('index'))
-    return render_template('search_rooms.jinja', locations=['Atlanta'])
+    if request.method == 'POST':
+        conn = get_connection()
+        c = conn.cursor()
+        req_start_date = request.form['start_date']
+        req_end_date = request.form['end_date']
+        req_loc = request.form['location']
+        query_str = """
+        SELECT r.*
+        FROM (SELECT * FROM rooms WHERE location='{0}') r
+        LEFT JOIN (SELECT * FROM reservations WHERE ('{1}' < end_date) AND ('{2}' > start_date)) e on e.room_id=r.id
+        WHERE e.id IS NULL
+        """.format(req_loc, req_start_date, req_end_date)
+        c.execute(query_str)
+        result = c.fetchall()
+        conn.close()
+        return str(result)
+    # This could be replaced with a list of locations, if we know all of them
+    conn = get_connection()
+    c = conn.cursor()
+    query_str = """SELECT DISTINCT location FROM rooms"""
+    c.execute(query_str)
+    result = c.fetchall()
+    conn.close()
+    return render_template('search_rooms.jinja', locations=result)
 
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
+
+def get_connection():
+    conn = connect(host='192.227.175.138',
+                   user='fancy',
+                   password='bubbles',
+                   db='fancy_hotel',
+                   charset='utf8')
+    return conn
 
 if __name__ == '__main__':
     app.debug = True
