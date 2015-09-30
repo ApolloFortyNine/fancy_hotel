@@ -5,6 +5,10 @@ from pymysql import connect
 app = Flask(__name__)
 app.secret_key = 'not_secret_at_all'
 
+###
+### TODO MAKE SURE END DATE IS AFTER START DATE
+###
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
