@@ -58,6 +58,8 @@ def search_rooms():
         c = conn.cursor()
         req_start_date = request.form['start_date']
         req_end_date = request.form['end_date']
+        session['start_date'] = req_start_date
+        session['end_date'] = req_end_date
         req_loc = request.form['location']
         query_str = """
         SELECT r.*
@@ -68,7 +70,7 @@ def search_rooms():
         c.execute(query_str)
         result = c.fetchall()
         conn.close()
-        return str(result)
+        return render_template('search_results.jinja', rooms=result)
     # This could be replaced with a list of locations, if we know all of them
     conn = get_connection()
     c = conn.cursor()
@@ -77,6 +79,31 @@ def search_rooms():
     result = c.fetchall()
     conn.close()
     return render_template('search_rooms.jinja', locations=result)
+
+@app.route('/select_results', methods=['POST'])
+def select_results():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        if 'rooms' not in request.form:
+            return url_for('search_rooms')
+        selected_rooms = request.form.getlist('rooms')
+        extra_beds = []
+        if 'extra_beds' in request.form:
+            extra_beds = request.form.getlist('extra_beds')
+        conn = get_connection()
+        c = conn.cursor()
+        total = 0
+        rooms_arr = []
+        for x in selected_rooms:
+            query_str = """SELECT * FROM rooms WHERE id={0}""".format(x)
+            c.execute(query_str)
+            result = c.fetchone()
+            if x in extra_beds:
+                total += result[5]
+            total += result[3]
+            rooms_arr += result
+        return str(request.form) + "Total: " + str(total)
 
 @app.route('/logout')
 def logout():
