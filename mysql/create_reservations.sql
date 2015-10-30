@@ -1,4 +1,4 @@
-﻿CREATE TABLE reservations (
+CREATE TABLE reservations (
   id SERIAL,
   reservation_id BIGINT NOT NULL,
   start_date DATE NOT NULL,
