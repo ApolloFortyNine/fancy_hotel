@@ -1,4 +1,4 @@
-﻿CREATE TABLE feedback (
+CREATE TABLE feedback (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   comment TEXT NULL,
   rating VARCHAR(20) NOT NULL,
