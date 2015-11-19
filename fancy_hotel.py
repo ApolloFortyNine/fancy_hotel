@@ -123,15 +123,44 @@ def payment_form():
             last_four = x[0][-4:]
             y = x + (last_four, )
             credit_cards_arr.append(y)
-        return render_template('payment_form.jinja', credit_cards=credit_cards_arr
-                               , start_date=session['start_date'], end_date=session['end_date'], total=total)
+        conn.close()
+        return render_template('payment_form.jinja', credit_cards=credit_cards_arr,
+                               start_date=session['start_date'], end_date=session['end_date'], total=total)
+
 
 @app.route('/add_card', methods=['GET', 'POST'])
 def add_card():
     if 'username' not in session:
         return redirect(url_for('index'))
-    if request.method == ['GET']:
-        return render_template('add_card.jinja')
+    if request.method == 'GET':
+        conn = get_connection()
+        c = conn.cursor()
+        query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
+        # query_str = """SELECT room_number FROM rooms"""
+        c.execute(query_str)
+        result = c.fetchall()
+        credit_cards_arr = []
+        result += (("1234567890",),)
+        result += (("0987654321",),)
+        for x in result:
+            last_four = x[0][-4:]
+            y = x + (last_four, )
+            credit_cards_arr.append(y)
+        conn.close()
+        return render_template('add_card.jinja', credit_cards=credit_cards_arr)
+    if request.method == 'POST':
+        conn = get_connection()
+        c = conn.cursor()
+        query_str = """INSERT INTO cards (card_number, name_on_card, expiration_date, cvv, customer_id)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}')""".format(request.form['card_number'],
+                                                                            request.form['card_name'],
+                                                                            request.form['card_exp_date'],
+                                                                            request.form['card_cvv'],
+                                                                            session['username'])
+        c.execute(query_str)
+        conn.commit()
+        conn.close()
+        return "Success!"
 
 @app.route('/make_reservation', methods=['POST'])
 def make_reservation():

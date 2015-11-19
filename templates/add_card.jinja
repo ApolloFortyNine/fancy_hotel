@@ -1,0 +1,64 @@
+{% extends "base.jinja" %}
+{% block content %}
+  <h5>Payment Form</h5>
+  <div class="row">
+    <form method="post" class="col s12" action="add_card">
+      <div class="row">
+        <div class="input-field col s3">
+          <br>
+          <br>
+          <label>Only select a credit card here if you wish to delete it</label>
+          <br>
+          <select name="credit_card_del" class="browser-default">
+            <option value="" disabled selected>Choose your option</option>
+            {% for row in credit_cards %}
+              <option value="{{row[0]}}">{{row[1]}}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s3">
+          <button class="btn waves-effect waves-light" type="submit">Delete
+            <i class="material-icons right">send</i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="row">
+    <form method="post" class="col s12" action="add_card">
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="text" name="card_name" class="validate">
+          <label for="icon_prefix">Name on Card</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="text" name="card_number" class="validate">
+          <label for="icon_prefix">Credit Card Number (No spaces or dashes)</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="text" name="card_cvv" class="validate">
+          <label for="icon_prefix">CVV</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="text" name="card_exp_date" class="validate">
+          <label for="icon_prefix">Exp. Date (Put last day of month it expires, i.e 2015-12-31 if 12/15)</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s3">
+          <button class="btn waves-effect waves-light" type="submit">Add Card
+            <i class="material-icons right">send</i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}
