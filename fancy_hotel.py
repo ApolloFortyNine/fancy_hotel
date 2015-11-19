@@ -87,7 +87,7 @@ def search_rooms():
     conn.close()
     return render_template('search_rooms.jinja', locations=result)
 
-@app.route('/payment_form', methods=['POST'])
+@app.route('/payment_form', methods=['GET', 'POST'])
 def payment_form():
     if 'username' not in session:
         return redirect(url_for('index'))
@@ -111,7 +111,39 @@ def payment_form():
             total += result[3]
             rooms_arr.append(result)
         session['selected_rooms'] = selected_rooms
-        session['total'] = float(total)
+        session['selected_extra_beds'] = extra_beds
+        query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
+        # query_str = """SELECT room_number FROM rooms"""
+        c.execute(query_str)
+        result = c.fetchall()
+        credit_cards_arr = []
+        result += (("1234567890",),)
+        result += (("0987654321",),)
+        for x in result:
+            last_four = x[0][-4:]
+            y = x + (last_four, )
+            credit_cards_arr.append(y)
+        conn.close()
+        return render_template('payment_form.jinja', credit_cards=credit_cards_arr,
+                               start_date=session['start_date'], end_date=session['end_date'], total=total)
+    if request.method == 'GET':
+        if 'added_card' not in session:
+            return redirect(url_for('index'))
+        conn = get_connection()
+        c = conn.cursor()
+        total = 0
+        extra_beds = []
+        selected_rooms = session['selected_rooms']
+        extra_beds = session['selected_extra_beds']
+        rooms_arr = []
+        for x in selected_rooms:
+            query_str = """SELECT * FROM rooms WHERE room_number={0} AND location='{1}'""".format(x, session['location'])
+            c.execute(query_str)
+            result = c.fetchone()
+            if x in extra_beds:
+                total += result[4]
+            total += result[3]
+            rooms_arr.append(result)
         query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
         # query_str = """SELECT room_number FROM rooms"""
         c.execute(query_str)
@@ -160,7 +192,8 @@ def add_card():
         c.execute(query_str)
         conn.commit()
         conn.close()
-        return "Success!"
+        session['added_card'] = 1
+        return redirect(url_for('payment_form'))
 
 @app.route('/make_reservation', methods=['POST'])
 def make_reservation():
