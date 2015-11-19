@@ -110,20 +110,38 @@ def payment_form():
                 total += result[4]
             total += result[3]
             rooms_arr.append(result)
-        print(rooms_arr)
         session['selected_rooms'] = selected_rooms
         session['total'] = float(total)
         query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
+        # query_str = """SELECT room_number FROM rooms"""
         c.execute(query_str)
         result = c.fetchall()
         credit_cards_arr = []
+        result += (("1234567890",),)
+        result += (("0987654321",),)
         for x in result:
             last_four = x[0][-4:]
-            y = x + (last_four,)
+            y = x + (last_four, )
             credit_cards_arr.append(y)
-        print(result)
         return render_template('payment_form.jinja', credit_cards=credit_cards_arr
                                , start_date=session['start_date'], end_date=session['end_date'], total=total)
+
+@app.route('/add_card', methods=['GET', 'POST'])
+def add_card():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    if request.method == ['GET']:
+        return render_template('add_card.jinja')
+
+@app.route('/make_reservation', methods=['POST'])
+def make_reservation():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    if 'credit_card' not in request.form:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        return request.form['credit_card']
+    # Don't forget to pop all the session objects out except for username, or session.clear() then add username back
 
 @app.route('/logout')
 def logout():
