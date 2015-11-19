@@ -87,8 +87,8 @@ def search_rooms():
     conn.close()
     return render_template('search_rooms.jinja', locations=result)
 
-@app.route('/select_results', methods=['POST'])
-def select_results():
+@app.route('/payment_form', methods=['POST'])
+def payment_form():
     if 'username' not in session:
         return redirect(url_for('index'))
     if request.method == 'POST':
@@ -112,7 +112,18 @@ def select_results():
             rooms_arr.append(result)
         print(rooms_arr)
         session['selected_rooms'] = selected_rooms
-        return str(request.form) + "Total: " + str(total)
+        session['total'] = float(total)
+        query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
+        c.execute(query_str)
+        result = c.fetchall()
+        credit_cards_arr = []
+        for x in result:
+            last_four = x[0][-4:]
+            y = x + (last_four,)
+            credit_cards_arr.append(y)
+        print(result)
+        return render_template('payment_form.jinja', credit_cards=credit_cards_arr
+                               , start_date=session['start_date'], end_date=session['end_date'], total=total)
 
 @app.route('/logout')
 def logout():

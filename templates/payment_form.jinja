@@ -1,0 +1,42 @@
+{% extends "base.jinja" %}
+{% block content %}
+  <h5>Payment Form</h5>
+  <div class="row">
+    <form method="post" class="col s12">
+      <div class="row">
+        <div class="input-field col s3">
+          <br>
+          <br>
+          <label>Credit Card</label>
+          <select name="credit_card" class="browser-default">
+            <option value="" disabled selected>Choose your option</option>
+            {% for row in credit_cards %}
+              <option value={{row[0]}}>{{row[1]}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col s3">
+          <br>
+          <br>
+          <p><a href="/add_card">Add a new card</a></p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s3">
+          <p>Start Date: {{start_date}}</p>
+        </div>
+        <div class="col s3">
+          <p>End Date: {{end_date}}</p>
+        </div>
+      </div>
+      <div class="row">
+        <p>Total: {{total}}</p>
+      </div>
+      <div class="row">
+        <button class="btn waves-effect waves-light" type="submit">Submit
+          <i class="material-icons right">send</i>
+        </button>
+      </div>
+    </form>
+  </div>
+{% endblock %}
