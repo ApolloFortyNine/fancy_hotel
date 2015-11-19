@@ -5,7 +5,9 @@ from pymysql import connect
 app = Flask(__name__)
 app.secret_key = 'not_secret_at_all'
 
-###
+### Our username and password:
+### cs4400_Group_26
+### eOAsu3N4
 ### TODO MAKE SURE END DATE IS AFTER START DATE
 ###
 
@@ -15,7 +17,7 @@ def index():
     if request.method == 'POST':
         conn = get_connection()
         c = conn.cursor()
-        query_str = """SELECT username, password FROM users WHERE username='{0}'""".format(request.form['username'])
+        query_str = """SELECT username, password FROM customers WHERE username='{0}'""".format(request.form['username'])
         c.execute(query_str)
         resp = c.fetchone()
         conn.close()
@@ -37,13 +39,13 @@ def register():
     if request.method == 'POST':
         conn = get_connection()
         c = conn.cursor()
-        query_str = """SELECT username FROM users WHERE username='{0}'""".format(request.form['username'])
+        query_str = """SELECT username FROM customers WHERE username='{0}'""".format(request.form['username'])
         c.execute(query_str)
         if c.fetchone():
             return 'Username taken'
         if request.form['password'] != request.form['confirm_password']:
             return "Password didn't match"
-        query_str = """INSERT INTO users (username, password, email)
+        query_str = """INSERT INTO customers (username, password, email)
                        VALUES ('{0}', '{1}', '{2}')""".format(request.form['username'],
                                                               request.form['password'],
                                                               request.form['email'])
@@ -65,14 +67,15 @@ def search_rooms():
         session['start_date'] = req_start_date
         session['end_date'] = req_end_date
         req_loc = request.form['location']
+        session['location'] = req_loc
         query_str = """
-        SELECT r.*
-        FROM (SELECT * FROM rooms WHERE location='{0}') r
-        LEFT JOIN (SELECT * FROM reservations WHERE ('{1}' < end_date) AND ('{2}' > start_date)) e on e.room_id=r.id
-        WHERE e.id IS NULL
+        SELECT * FROM rooms WHERE rooms.location='{0}' AND rooms.room_number NOT IN (SELECT room_number_id
+        FROM (SELECT id FROM reservations WHERE ('{2}' >= end_date) AND ('{1}' <= start_date) AND
+        is_cancelled=0) resv JOIN rooms_reservations rooms_resv ON resv.id=rooms_resv.reservation_id)
         """.format(req_loc, req_start_date, req_end_date)
         c.execute(query_str)
         result = c.fetchall()
+        print(result)
         conn.close()
         return render_template('search_results.jinja', rooms=result)
     # This could be replaced with a list of locations, if we know all of them
@@ -100,13 +103,15 @@ def select_results():
         total = 0
         rooms_arr = []
         for x in selected_rooms:
-            query_str = """SELECT * FROM rooms WHERE id={0}""".format(x)
+            query_str = """SELECT * FROM rooms WHERE room_number={0} AND location='{1}'""".format(x, session['location'])
             c.execute(query_str)
             result = c.fetchone()
             if x in extra_beds:
-                total += result[5]
+                total += result[4]
             total += result[3]
-            rooms_arr += result
+            rooms_arr.append(result)
+        print(rooms_arr)
+        session['selected_rooms'] = selected_rooms
         return str(request.form) + "Total: " + str(total)
 
 @app.route('/logout')
@@ -116,9 +121,9 @@ def logout():
 
 def get_connection():
     conn = connect(host='192.227.175.138',
-                   user='fancy',
+                   user='fancy2',
                    password='bubbles',
-                   db='fancy_hotel',
+                   db='fancy_phase_ii',
                    charset='utf8')
     return conn
 
