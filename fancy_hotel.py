@@ -178,6 +178,11 @@ def add_card():
     if request.method == 'POST':
         conn = get_connection()
         c = conn.cursor()
+        if 'credit_card_del' in request.form:
+            query_str = """DELETE FROM cards WHERE card_number='{0}'""".format(request.form['credit_card_del'])
+            c.execute(query_str)
+            conn.commit()
+            return redirect(url_for('index'))
         query_str = """INSERT INTO cards (card_number, name_on_card, expiration_date, cvv, customer_id)
                        VALUES ('{0}', '{1}', '{2}', '{3}', '{4}')""".format(request.form['card_number'],
                                                                             request.form['card_name'],
@@ -188,13 +193,14 @@ def add_card():
         conn.commit()
         conn.close()
         session['added_card'] = 1
+        if 'total' not in session:
+            print()
+            return redirect(url_for('index'))
         return redirect(url_for('payment_form'))
 
 
 @app.route('/make_reservation', methods=['POST'])
 def make_reservation():
-    print(request.method)
-    print(request.form)
     if 'username' not in session:
         return redirect(url_for('index'))
     if 'credit_card' not in request.form:
@@ -208,14 +214,12 @@ def make_reservation():
                                                                             session['total'],
                                                                             session['username'],
                                                                             request.form['credit_card'])
-        print(query_str)
         c.execute(query_str)
         conn.commit()
         query_str = """SELECT LAST_INSERT_ID()"""
         c.execute(query_str)
         conn.commit()
         reservation_id = c.fetchone()[0]
-        print(reservation_id)
         extra_beds = session['selected_extra_beds']
         select_extra_bed = 0
         for x in session['selected_rooms']:
@@ -229,7 +233,10 @@ def make_reservation():
             c.execute(query_str)
             conn.commit()
         conn.close()
-        return "SUCCESSSSSSS"
+        username = session['username']
+        session.clear()
+        session['username'] = username
+        return render_template("make_reservation.jinja", reservation_id=reservation_id)
     # Don't forget to pop all the session objects out except for username, or session.clear() then add username back
 
 @app.route('/logout')
