@@ -70,12 +70,12 @@ def search_rooms():
         session['location'] = req_loc
         query_str = """
         SELECT * FROM rooms WHERE rooms.location='{0}' AND rooms.room_number NOT IN (SELECT room_number_id
-        FROM (SELECT id FROM reservations WHERE ('{2}' >= end_date) AND ('{1}' <= start_date) AND
-        is_cancelled=0) resv JOIN rooms_reservations rooms_resv ON resv.id=rooms_resv.reservation_id)
+        FROM (SELECT id FROM reservations WHERE ((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
+        AND (start_date < '{2}')) AND is_cancelled=0) resv JOIN rooms_reservations rooms_resv
+        ON resv.id=rooms_resv.reservation_id)
         """.format(req_loc, req_start_date, req_end_date)
         c.execute(query_str)
         result = c.fetchall()
-        print(result)
         conn.close()
         return render_template('search_results.jinja', rooms=result)
     # This could be replaced with a list of locations, if we know all of them
@@ -112,13 +112,12 @@ def payment_form():
             rooms_arr.append(result)
         session['selected_rooms'] = selected_rooms
         session['selected_extra_beds'] = extra_beds
+        session['total'] = float(total)
         query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
         # query_str = """SELECT room_number FROM rooms"""
         c.execute(query_str)
         result = c.fetchall()
         credit_cards_arr = []
-        result += (("1234567890",),)
-        result += (("0987654321",),)
         for x in result:
             last_four = x[0][-4:]
             y = x + (last_four, )
@@ -149,8 +148,6 @@ def payment_form():
         c.execute(query_str)
         result = c.fetchall()
         credit_cards_arr = []
-        result += (("1234567890",),)
-        result += (("0987654321",),)
         for x in result:
             last_four = x[0][-4:]
             y = x + (last_four, )
@@ -172,8 +169,6 @@ def add_card():
         c.execute(query_str)
         result = c.fetchall()
         credit_cards_arr = []
-        result += (("1234567890",),)
-        result += (("0987654321",),)
         for x in result:
             last_four = x[0][-4:]
             y = x + (last_four, )
@@ -195,14 +190,46 @@ def add_card():
         session['added_card'] = 1
         return redirect(url_for('payment_form'))
 
+
 @app.route('/make_reservation', methods=['POST'])
 def make_reservation():
+    print(request.method)
+    print(request.form)
     if 'username' not in session:
         return redirect(url_for('index'))
     if 'credit_card' not in request.form:
         return redirect(url_for('index'))
     if request.method == 'POST':
-        return request.form['credit_card']
+        conn = get_connection()
+        c = conn.cursor()
+        query_str = """INSERT INTO reservations (start_date, end_date, total_cost, customer_id, card_number_id)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}')""".format(session['start_date'],
+                                                                            session['end_date'],
+                                                                            session['total'],
+                                                                            session['username'],
+                                                                            request.form['credit_card'])
+        print(query_str)
+        c.execute(query_str)
+        conn.commit()
+        query_str = """SELECT LAST_INSERT_ID()"""
+        c.execute(query_str)
+        conn.commit()
+        reservation_id = c.fetchone()[0]
+        print(reservation_id)
+        extra_beds = session['selected_extra_beds']
+        select_extra_bed = 0
+        for x in session['selected_rooms']:
+            if x in extra_beds:
+                select_extra_bed = 1
+            query_str = """INSERT INTO rooms_reservations (reservation_id, room_number_id, location_id, extra_bed_selected)
+                           VALUES ('{0}', '{1}', '{2}', '{3}')""".format(reservation_id,
+                                                                         x,
+                                                                         session['location'],
+                                                                         select_extra_bed)
+            c.execute(query_str)
+            conn.commit()
+        conn.close()
+        return "SUCCESSSSSSS"
     # Don't forget to pop all the session objects out except for username, or session.clear() then add username back
 
 @app.route('/logout')
