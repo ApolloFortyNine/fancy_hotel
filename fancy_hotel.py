@@ -68,10 +68,14 @@ def search_rooms():
         conn = get_connection()
         c = conn.cursor()
         req_start_date = request.form['start_date']
-        if req_start_date < datetime.date.today():
-            return render_template("error.jinja", message="Please select a start date in the future.")
+        req_start_date_dt = datetime.datetime.strptime(req_start_date, "%Y-%m-%d").date()
+        print(req_start_date)
+        print(req_start_date_dt)
+        if req_start_date_dt < datetime.date.today():
+            return render_template("error.jinja", message="Please pick a starting date in the future.")
         req_end_date = request.form['end_date']
-        if req_end_date < req_start_date:
+        req_end_date_dt = datetime.datetime.strptime(req_end_date, "%Y-%m-%d").date()
+        if req_end_date_dt < req_start_date_dt:
             return render_template("error.jinja", message="The end date can not be before the start date.")
         session['start_date'] = req_start_date
         session['end_date'] = req_end_date
@@ -329,9 +333,11 @@ def update_results():
     new_end_date = request.form['new_end_date']
     reservation_id = request.form['reservation_id']
     todays_date = datetime.date.today()
-    if new_start_date < todays_date:
+    new_start_date_dt = datetime.datetime.strptime(new_start_date, "%Y-%m-%d").date()
+    new_end_date_dt = datetime.datetime.strptime(new_end_date, "%Y-%m-%d").date()
+    if new_start_date_dt < todays_date:
         return render_template("error.jinja", message="Please pick a starting date in the future.")
-    if new_end_date < new_start_date:
+    if new_end_date_dt < new_start_date_dt:
         return render_template("error.jinja", message="The end date can not be before the start date.")
     session['new_start_date'] = new_start_date
     session['new_end_date'] = new_end_date
