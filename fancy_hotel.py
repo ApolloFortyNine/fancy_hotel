@@ -71,8 +71,8 @@ def search_rooms():
         session['location'] = req_loc
         query_str = """
         SELECT * FROM rooms WHERE rooms.location='{0}' AND rooms.room_number NOT IN (SELECT room_number_id
-        FROM (SELECT id FROM reservations WHERE ((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
-        AND (start_date < '{2}')) AND is_cancelled=0) resv JOIN rooms_reservations rooms_resv
+        FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
+        AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
         ON resv.id=rooms_resv.reservation_id)
         """.format(req_loc, req_start_date, req_end_date)
         c.execute(query_str)
@@ -278,13 +278,25 @@ def cancel_search():
         result = c.fetchall()
         print(result)
         conn.close()
-        # return "yolo"
         return render_template("cancel_results.jinja",
                                start_date=start_date,
                                end_date=end_date,
-                               # refund=refund,
-                               # total=total,
-                               rooms=result)
+                               todays_date=todays_date,
+                               refund=refund,
+                               total=total,
+                               rooms=result,
+                               reservation_id=reservation_id)
+
+
+@app.route('/cancel_reservation', methods=['POST'])
+def cancel_reservation():
+    conn = get_connection()
+    c = conn.cursor()
+    query_str = """UPDATE reservations SET is_cancelled=1 WHERE id={0}""".format(request.form['reservation_id'])
+    c.execute(query_str)
+    conn.commit()
+    conn.close()
+    return render_template("cancel_reservation.jinja", reservation_id=request.form['reservation_id'])
 
 @app.route('/logout')
 def logout():
