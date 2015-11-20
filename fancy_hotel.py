@@ -68,7 +68,11 @@ def search_rooms():
         conn = get_connection()
         c = conn.cursor()
         req_start_date = request.form['start_date']
+        if req_start_date < datetime.date.today():
+            return render_template("error.jinja", message="Please select a start date in the future.")
         req_end_date = request.form['end_date']
+        if req_end_date < req_start_date:
+            return render_template("error.jinja", message="The end date can not be before the start date.")
         session['start_date'] = req_start_date
         session['end_date'] = req_end_date
         req_loc = request.form['location']
