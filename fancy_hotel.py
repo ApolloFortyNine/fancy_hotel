@@ -268,7 +268,7 @@ def cancel_search():
 
         query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
                        rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
-                       JOIN rooms ON rooms.room_number=room_number_id AND rooms.location=location_id WHERE reservation_id={0}""".format(reservation_id)
+                       JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0}""".format(reservation_id)
         c.execute(query_str)
         result = c.fetchall()
         print(result)
@@ -305,13 +305,40 @@ def update_search():
         query_str = """SELECT * FROM reservations WHERE id={0}""".format(reservation_id)
         c.execute(query_str)
         reservation_info = c.fetchone()
-        start_date = reservation_info[1]
-        end_date = reservation_info[2]
+        curr_start_date = reservation_info[1]
+        curr_end_date = reservation_info[2]
         todays_date = datetime.date.today()
         total = reservation_info[3]
         is_cancelled = reservation_info[4]
         if is_cancelled == 1:
             return render_template("error.jinja", message="Already cancelled!")
+        new_start_date = request.form['start_date']
+        new_end_date = request.form['end_date']
+
+        # query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
+        #                rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
+        #                JOIN rooms ON rooms.room_number=room_number_id AND rooms.location=location_id WHERE reservation_id={0}""".format(reservation_id)
+        # c.execute(query_str)
+        # rooms = c.fetchall()
+        #
+        # query_str = """SELECT room_number_id
+        #                FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
+        #                AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
+        #                ON resv.id=rooms_resv.reservation_id"""
+        # c.execute(query_str)
+        # conflicting_rooms = c.fetchall()
+
+        query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
+                       rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
+                       JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0} AND r.room_number_id NOT IN (SELECT room_number_id
+                       FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
+                       AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
+                       ON resv.id=rooms_resv.reservation_id)""".format(reservation_id, new_start_date, new_end_date)
+        c.execute(query_str)
+        rooms = c.fetchall()
+        print(rooms)
+        return "Ahhhhhhhh"
+
 
 
 
