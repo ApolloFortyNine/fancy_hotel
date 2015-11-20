@@ -170,7 +170,6 @@ def add_card():
         conn = get_connection()
         c = conn.cursor()
         query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
-        # query_str = """SELECT room_number FROM rooms"""
         c.execute(query_str)
         result = c.fetchall()
         credit_cards_arr = []
@@ -325,6 +324,9 @@ def update_results():
     new_start_date = request.form['new_start_date']
     new_end_date = request.form['new_end_date']
     reservation_id = request.form['reservation_id']
+    todays_date = datetime.date.today()
+    if new_start_date < todays_date:
+        return render_template("error.jinja", message="Please pick a starting date in the future.")
     session['new_start_date'] = new_start_date
     session['new_end_date'] = new_end_date
     query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
