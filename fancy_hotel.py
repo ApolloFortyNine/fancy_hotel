@@ -380,7 +380,11 @@ def view_reviews():
         conn = get_connection()
         c = conn.cursor()
         location = request.form['location']
-        return "Nothing"
+
+        query_str = """SELECT rating, comment FROM feedback WHERE location='{0}'""".format(location)
+        c.execute(query_str)
+        reviews = c.fetchall()
+        return render_template("view_reviews.jinja", location=location, reviews=reviews)
 
 
 @app.route('/logout')
