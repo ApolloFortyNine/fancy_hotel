@@ -242,10 +242,8 @@ def make_reservation():
 
 @app.route('/cancel_search', methods=['GET', 'POST'])
 def cancel_search():
-    if 'username' not in session:
-        return redirect(url_for('index'))
     if request.method == 'GET':
-        return render_template("cancel_search.jinja")
+        return render_template("cancel_search.jinja", type="Cancel")
     if request.method == 'POST':
         reservation_id = request.form['reservation_id']
         conn = get_connection()
@@ -298,10 +296,18 @@ def cancel_reservation():
     conn.close()
     return render_template("cancel_reservation.jinja", reservation_id=request.form['reservation_id'])
 
+
+@app.route('/update_search', methods=['GET', 'POST'])
+def update_search():
+    if request.method == 'GET':
+        return render_template("cancel_search.jinja", type="Update")
+
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
+
 
 def get_connection():
     conn = connect(host='192.227.175.138',
