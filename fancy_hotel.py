@@ -358,7 +358,29 @@ def update_reservation():
     c.execute(query_str)
     conn.commit()
     conn.close()
+    username = session['username']
+    session.clear()
+    session['username'] = username
     return render_template("update_reservation.jinja", reservation_id=reservation_id)
+
+
+@app.route('/view_reviews', methods=['GET', 'POST'])
+def view_reviews():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    if request.method == 'GET':
+        conn = get_connection()
+        c = conn.cursor()
+        query_str = """SELECT DISTINCT location FROM rooms"""
+        c.execute(query_str)
+        locations = c.fetchall()
+        conn.close()
+        return render_template("select_reviews_location.jinja", locations=locations)
+    if request.method == 'POST':
+        conn = get_connection()
+        c = conn.cursor()
+        location = request.form['location']
+        return "Nothing"
 
 
 @app.route('/logout')
