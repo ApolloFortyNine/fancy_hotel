@@ -311,22 +311,6 @@ def update_search():
         if is_cancelled == 1:
             return render_template("error.jinja", message="Already cancelled!")
 
-        # query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
-        #                rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
-        #                JOIN rooms ON rooms.room_number=room_number_id AND rooms.location=location_id WHERE reservation_id={0}""".format(reservation_id)
-        # c.execute(query_str)
-        # rooms = c.fetchall()
-        #
-        # query_str = """SELECT room_number_id
-        #                FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
-        #                AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
-        #                ON resv.id=rooms_resv.reservation_id"""
-        # c.execute(query_str)
-        # conflicting_rooms = c.fetchall()
-
-        # c.execute(query_str)
-        #rooms = c.fetchall()
-        # print(rooms)
         return render_template("update_choose.jinja", curr_start_date=curr_start_date, curr_end_date=curr_end_date, reservation_id=reservation_id)
 
 
@@ -337,23 +321,40 @@ def update_results():
     new_start_date = request.form['new_start_date']
     new_end_date = request.form['new_end_date']
     reservation_id = request.form['reservation_id']
+    session['new_start_date'] = new_start_date
+    session['new_end_date'] = new_end_date
     query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
-                       rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
-                       JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0} AND r.room_number_id NOT IN (SELECT room_number_id
-                       FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
-                       AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
-                       ON resv.id=rooms_resv.reservation_id)""".format(reservation_id, new_start_date, new_end_date)
+                   rooms.cost_of_extra_bed_per_day, r.extra_bed_selected FROM rooms_reservations r
+                   JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0} AND r.room_number_id NOT IN (SELECT room_number_id
+                   FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
+                   AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
+                   ON resv.id=rooms_resv.reservation_id)""".format(reservation_id, new_start_date, new_end_date)
     c.execute(query_str)
     rooms_available = c.fetchall()
-    print(rooms_available)
 
     query_str = """SELECT count(room_number_id) FROM rooms_reservations WHERE reservation_id={0}""".format(reservation_id)
     c.execute(query_str)
     num_rooms_booked = c.fetchone()[0]
     if num_rooms_booked != len(rooms_available):
         return render_template("error.jinja", message="Your previously booked rooms are not available on those days. Please cancel and remake the reservation.")
-    return "SWAG"
 
+    query_str = """SELECT total_cost FROM reservations WHERE id={0}""".format(reservation_id)
+    c.execute(query_str)
+    total = c.fetchone()[0]
+    conn.close()
+    return render_template("update_results.jinja", rooms=rooms_available, reservation_id=reservation_id, total=total)
+
+
+@app.route('/update_reservation', methods=['POST'])
+def update_reservation():
+    reservation_id = request.form['reservation_id']
+    conn = get_connection()
+    c = conn.cursor()
+    query_str = """UPDATE reservations SET start_date='{0}', end_date='{1}' WHERE id={2}""".format(session['new_start_date'], session['new_end_date'], reservation_id)
+    c.execute(query_str)
+    conn.commit()
+    conn.close()
+    return render_template("update_reservation.jinja", reservation_id=reservation_id)
 
 @app.route('/logout')
 def logout():
