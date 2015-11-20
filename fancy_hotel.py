@@ -356,6 +356,7 @@ def update_reservation():
     conn.close()
     return render_template("update_reservation.jinja", reservation_id=reservation_id)
 
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
