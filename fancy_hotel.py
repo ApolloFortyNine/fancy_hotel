@@ -258,7 +258,7 @@ def cancel_search():
         total = reservation_info[3]
         is_cancelled = reservation_info[4]
         if is_cancelled == 1:
-            return "Already cancelled"
+            return render_template("error.jinja", message="Already cancelled!")
         if days_between >= 3:
             refund = total
         elif days_between > 1:
@@ -311,7 +311,7 @@ def update_search():
         total = reservation_info[3]
         is_cancelled = reservation_info[4]
         if is_cancelled == 1:
-            return "Already cancelled"
+            return render_template("error.jinja", message="Already cancelled!")
 
 
 
