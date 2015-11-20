@@ -331,6 +331,8 @@ def update_results():
     todays_date = datetime.date.today()
     if new_start_date < todays_date:
         return render_template("error.jinja", message="Please pick a starting date in the future.")
+    if new_end_date < new_start_date:
+        return render_template("error.jinja", message="The end date can not be before the start date.")
     session['new_start_date'] = new_start_date
     session['new_end_date'] = new_end_date
     query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
