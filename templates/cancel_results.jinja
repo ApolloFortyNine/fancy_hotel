@@ -1,0 +1,54 @@
+{% extends "base.jinja" %}
+{% block content %}
+  <h5>Cancel Reservation</h5>
+  <br>
+  <div class="row">
+    <div class="col s3">
+      <p>Start Date: {{start_date}}</p>
+    </div>
+    <div class="col s3">
+      <p>End Date: {{end_date}}</p>
+    </div>
+  </div>
+  <div class="row">
+    <table class="striped centered">
+      <thead>
+        <tr>
+          <th data-field="room_number">Room Number</th>
+          <th data-field="category">Category</th>
+          <th data-field="persons_allowed">Persons Allowed</th>
+          <th data-field="cost_per_day">Cost Per Day</th>
+          <th data-field="cost_extra_bed_per_day">Cost of Extra Bed Per Day</th>
+          <th data-field="selected_extra_bed">Selected Extra Bed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rooms %}
+          <tr>
+            <td>{{row[0]}}</td>
+            <td>{{row[1]}}</td>
+            <td>{{row[2]}}</td>
+            <td>{{row[3]}}</td>
+            <td>{{row[4]}}</td>
+            {% if row[5] == 1 %}
+              <td><p><input type="checkbox" id="{{row[0]}}_extra" name="extra_beds" checked="checked" disabled="disabled" /><label for="{{row[0]}}_extra"></label></p></td>
+            {% else %}
+              <td><p><input type="checkbox" id="{{row[0]}}_extra" name="extra_beds" disabled="disabled" /><label for="{{row[0]}}_extra"></label></p></td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="row">
+    <form method="post" class="col s12" action="/cancel_reservation">
+      <div class="row">
+        <div class="input-field col s6">
+          <button class="btn waves-effect waves-light" type="submit">Cancel
+            <i class="material-icons right">send</i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}

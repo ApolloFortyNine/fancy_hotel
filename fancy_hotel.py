@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, session
 from flask import redirect, url_for
 from pymysql import connect
+import datetime
 
 app = Flask(__name__)
 app.secret_key = 'not_secret_at_all'
@@ -237,7 +238,53 @@ def make_reservation():
         session.clear()
         session['username'] = username
         return render_template("make_reservation.jinja", reservation_id=reservation_id)
-    # Don't forget to pop all the session objects out except for username, or session.clear() then add username back
+
+
+@app.route('/cancel_search', methods=['GET', 'POST'])
+def cancel_search():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    if request.method == 'GET':
+        return render_template("cancel_search.jinja")
+    if request.method == 'POST':
+        reservation_id = request.form['reservation_id']
+        conn = get_connection()
+        c = conn.cursor()
+        query_str = """SELECT * FROM reservations WHERE id={0}""".format(reservation_id)
+        c.execute(query_str)
+        reservation_info = c.fetchone()
+        # print(reservation_info)
+        start_date = reservation_info[1]
+        end_date = reservation_info[2]
+        todays_date = datetime.date.today()
+        days_between = (start_date - todays_date).days
+        # print(days_between)
+        total = reservation_info[3]
+        refund = 0
+        is_cancelled = reservation_info[4]
+        if is_cancelled == 1:
+            return "Already cancelled"
+        if days_between >= 3:
+            refund = total
+        elif days_between > 1:
+            refund = 0.8 * total
+        else:
+            refund = 0
+
+        query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
+                       rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
+                       JOIN rooms ON rooms.room_number=room_number_id AND rooms.location=location_id WHERE reservation_id={0}""".format(reservation_id)
+        c.execute(query_str)
+        result = c.fetchall()
+        print(result)
+        conn.close()
+        # return "yolo"
+        return render_template("cancel_results.jinja",
+                               start_date=start_date,
+                               end_date=end_date,
+                               # refund=refund,
+                               # total=total,
+                               rooms=result)
 
 @app.route('/logout')
 def logout():

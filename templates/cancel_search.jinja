@@ -1,0 +1,17 @@
+{% extends "base.jinja" %}
+{% block content %}
+  <h5>Cancel Reservation</h5>
+  <div class="row">
+    <form method="post" class="col s12">
+      <div class="row">
+        <div class="input-field col s6">
+          <input id="icon_prefix" type="text" name="reservation_id" class="validate">
+          <label for="icon_prefix">Reservation ID</label>
+          <button class="btn waves-effect waves-light" type="submit">Submit
+            <i class="material-icons right">send</i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}
