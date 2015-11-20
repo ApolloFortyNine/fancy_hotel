@@ -35,9 +35,13 @@ def index():
         return render_template('index.jinja', username=session['username'])
     return render_template('index_login.jinja')
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        username = request.form['username']
+        if not username[1:].isdigit() or username[0] != "C":
+            return render_template("error.jinja", message="Username must follow the proper format! Cnnnn")
         conn = get_connection()
         c = conn.cursor()
         query_str = """SELECT username FROM customers WHERE username='{0}'""".format(request.form['username'])
