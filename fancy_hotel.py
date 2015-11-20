@@ -307,13 +307,9 @@ def update_search():
         reservation_info = c.fetchone()
         curr_start_date = reservation_info[1]
         curr_end_date = reservation_info[2]
-        todays_date = datetime.date.today()
-        total = reservation_info[3]
         is_cancelled = reservation_info[4]
         if is_cancelled == 1:
             return render_template("error.jinja", message="Already cancelled!")
-        new_start_date = request.form['start_date']
-        new_end_date = request.form['end_date']
 
         # query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
         #                rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
@@ -328,18 +324,35 @@ def update_search():
         # c.execute(query_str)
         # conflicting_rooms = c.fetchall()
 
-        query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
+        # c.execute(query_str)
+        #rooms = c.fetchall()
+        # print(rooms)
+        return render_template("update_choose.jinja", curr_start_date=curr_start_date, curr_end_date=curr_end_date, reservation_id=reservation_id)
+
+
+@app.route('/update_results', methods=['POST'])
+def update_results():
+    conn = get_connection()
+    c = conn.cursor()
+    new_start_date = request.form['new_start_date']
+    new_end_date = request.form['new_end_date']
+    reservation_id = request.form['reservation_id']
+    query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
                        rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
                        JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0} AND r.room_number_id NOT IN (SELECT room_number_id
                        FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
                        AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
                        ON resv.id=rooms_resv.reservation_id)""".format(reservation_id, new_start_date, new_end_date)
-        c.execute(query_str)
-        rooms = c.fetchall()
-        print(rooms)
-        return "Ahhhhhhhh"
+    c.execute(query_str)
+    rooms_available = c.fetchall()
+    print(rooms_available)
 
-
+    query_str = """SELECT count(room_number_id) FROM rooms_reservations WHERE reservation_id={0}""".format(reservation_id)
+    c.execute(query_str)
+    num_rooms_booked = c.fetchone()[0]
+    if num_rooms_booked != len(rooms_available):
+        return render_template("error.jinja", message="Your previously booked rooms are not available on those days. Please cancel and remake the reservation.")
+    return "SWAG"
 
 
 @app.route('/logout')
