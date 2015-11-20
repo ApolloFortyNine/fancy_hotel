@@ -251,14 +251,11 @@ def cancel_search():
         query_str = """SELECT * FROM reservations WHERE id={0}""".format(reservation_id)
         c.execute(query_str)
         reservation_info = c.fetchone()
-        # print(reservation_info)
         start_date = reservation_info[1]
         end_date = reservation_info[2]
         todays_date = datetime.date.today()
         days_between = (start_date - todays_date).days
-        # print(days_between)
         total = reservation_info[3]
-        refund = 0
         is_cancelled = reservation_info[4]
         if is_cancelled == 1:
             return "Already cancelled"
@@ -301,6 +298,21 @@ def cancel_reservation():
 def update_search():
     if request.method == 'GET':
         return render_template("cancel_search.jinja", type="Update")
+    if request.method == 'POST':
+        reservation_id = request.form['reservation_id']
+        conn = get_connection()
+        c = conn.cursor()
+        query_str = """SELECT * FROM reservations WHERE id={0}""".format(reservation_id)
+        c.execute(query_str)
+        reservation_info = c.fetchone()
+        start_date = reservation_info[1]
+        end_date = reservation_info[2]
+        todays_date = datetime.date.today()
+        total = reservation_info[3]
+        is_cancelled = reservation_info[4]
+        if is_cancelled == 1:
+            return "Already cancelled"
+
 
 
 @app.route('/logout')
