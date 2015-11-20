@@ -384,7 +384,35 @@ def view_reviews():
         query_str = """SELECT rating, comment FROM feedback WHERE location='{0}'""".format(location)
         c.execute(query_str)
         reviews = c.fetchall()
+        conn.close()
         return render_template("view_reviews.jinja", location=location, reviews=reviews)
+
+
+@app.route('/add_review', methods=['GET', 'POST'])
+def add_review():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    if request.method == 'GET':
+        conn = get_connection()
+        c = conn.cursor()
+        query_str = """SELECT DISTINCT location FROM rooms"""
+        c.execute(query_str)
+        locations = c.fetchall()
+        conn.close()
+        return render_template('/add_review.jinja', locations=locations)
+    if request.method == 'POST':
+        conn = get_connection()
+        c = conn.cursor()
+        review = request.form['review']
+        rating = request.form['rating']
+        location = request.form['location']
+        username = session['username']
+        query_str = """INSERT INTO feedback (comment, rating, location, customer_id)
+                       VALUES ('{0}', '{1}', '{2}', '{3}')""".format(review, rating, location, username)
+        c.execute(query_str)
+        conn.commit()
+        conn.close()
+        return render_template("added_review.jinja")
 
 
 @app.route('/logout')
