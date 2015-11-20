@@ -1,6 +1,6 @@
 {% extends "base.jinja" %}
 {% block content %}
-  <h5>Cancel Reservation</h5>
+  <h5>Update Reservation</h5>
   <br>
   <div class="row">
     <div class="col s6 center">
@@ -25,8 +25,8 @@
             <td>{{row[0]}}</td>
             <td>{{row[1]}}</td>
             <td>{{row[2]}}</td>
-            <td>{{row[3]}}</td>
-            <td>{{row[4]}}</td>
+            <td>${{row[3]}}</td>
+            <td>${{row[4]}}</td>
             {% if row[5] == 1 %}
               <td><p><input type="checkbox" id="{{row[0]}}_extra" name="extra_beds" checked="checked" disabled="disabled" /><label for="{{row[0]}}_extra"></label></p></td>
             {% else %}
