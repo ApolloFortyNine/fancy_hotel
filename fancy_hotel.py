@@ -137,7 +137,6 @@ def payment_form():
         session['selected_extra_beds'] = extra_beds
         session['total'] = float(total)
         query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
-        # query_str = """SELECT room_number FROM rooms"""
         c.execute(query_str)
         result = c.fetchall()
         credit_cards_arr = []
@@ -154,7 +153,6 @@ def payment_form():
         conn = get_connection()
         c = conn.cursor()
         total = 0
-        extra_beds = []
         selected_rooms = session['selected_rooms']
         extra_beds = session['selected_extra_beds']
         rooms_arr = []
@@ -171,7 +169,6 @@ def payment_form():
         num_days = (end_date_dt - start_date_dt).days
         total = total * num_days
         query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
-        # query_str = """SELECT room_number FROM rooms"""
         c.execute(query_str)
         result = c.fetchall()
         credit_cards_arr = []
