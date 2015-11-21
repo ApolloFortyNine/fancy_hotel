@@ -502,6 +502,40 @@ def popular_room_category_report():
     conn.close()
     return render_template("popular_room_category_report.jinja", result=result)
 
+
+@app.route('/view_revenue_report', methods=['GET'])
+def view_revenue_report():
+    if 'manager' not in session:
+        return redirect(url_for('index'))
+    conn = get_connection()
+    c = conn.cursor()
+
+    query_str = """SELECT MONTH(r.start_date) AS mnth, r.location_id, SUM(r.total_cost) AS sum_cost
+                   FROM (SELECT id, start_date, room_number_id, location_id, total_cost
+                   FROM reservations JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id WHERE is_cancelled=0 GROUP BY id) r
+                   WHERE start_date >= '2015-11-01' AND start_date <= '2015-12-31'
+                   GROUP BY MONTH(r.start_date), r.location_id"""
+    c.execute(query_str)
+    result_pre_converted = c.fetchall()
+    result = []
+    k = 0
+    # Convert month number to string, using November and December for testing
+    for x in result_pre_converted:
+        result.append(list(x))
+        if result[k][0] == 11:
+            result[k][0] = "November"
+        elif result[k][0] == 12:
+            result[k][0] = "December"
+        elif result[k][0] == 8:
+            result[k][0] = "August"
+        elif result[k][0] == 9:
+            result[k][0] = "September"
+        k += 1
+
+    conn.close()
+    return "nothing"
+
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
