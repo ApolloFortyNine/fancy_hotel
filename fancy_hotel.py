@@ -68,6 +68,7 @@ def register():
         return redirect(url_for('index'))
     return render_template('register.jinja')
 
+
 @app.route('/search_rooms', methods=['GET', 'POST'])
 def search_rooms():
     if 'username' not in session:
@@ -105,6 +106,7 @@ def search_rooms():
     result = c.fetchall()
     conn.close()
     return render_template('search_rooms.jinja', locations=result)
+
 
 @app.route('/payment_form', methods=['GET', 'POST'])
 def payment_form():
