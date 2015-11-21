@@ -77,8 +77,6 @@ def search_rooms():
         c = conn.cursor()
         req_start_date = request.form['start_date']
         req_start_date_dt = datetime.datetime.strptime(req_start_date, "%Y-%m-%d").date()
-        print(req_start_date)
-        print(req_start_date_dt)
         if req_start_date_dt < datetime.date.today():
             return render_template("error.jinja", message="Please pick a starting date in the future.")
         req_end_date = request.form['end_date']
@@ -90,7 +88,7 @@ def search_rooms():
         req_loc = request.form['location']
         session['location'] = req_loc
         query_str = """
-        SELECT * FROM rooms WHERE rooms.location='{0}' AND rooms.room_number NOT IN (SELECT room_number_id
+        SELECT * FROM rooms WHERE rooms.location='{0}' AND (rooms.room_number, rooms.location) NOT IN (SELECT room_number_id, location_id
         FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
         AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
         ON resv.id=rooms_resv.reservation_id)
@@ -131,6 +129,10 @@ def payment_form():
                 total += result[4]
             total += result[3]
             rooms_arr.append(result)
+        start_date_dt = datetime.datetime.strptime(session['start_date'], "%Y-%m-%d").date()
+        end_date_dt = datetime.datetime.strptime(session['end_date'], "%Y-%m-%d").date()
+        num_days = (end_date_dt - start_date_dt).days
+        total = total * num_days
         session['selected_rooms'] = selected_rooms
         session['selected_extra_beds'] = extra_beds
         session['total'] = float(total)
@@ -164,6 +166,10 @@ def payment_form():
                 total += result[4]
             total += result[3]
             rooms_arr.append(result)
+        start_date_dt = datetime.datetime.strptime(session['start_date'], "%Y-%m-%d").date()
+        end_date_dt = datetime.datetime.strptime(session['end_date'], "%Y-%m-%d").date()
+        num_days = (end_date_dt - start_date_dt).days
+        total = total * num_days
         query_str = """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
         # query_str = """SELECT room_number FROM rooms"""
         c.execute(query_str)
@@ -214,7 +220,6 @@ def add_card():
         conn.close()
         session['added_card'] = 1
         if 'total' not in session:
-            print()
             return redirect(url_for('index'))
         return redirect(url_for('payment_form'))
 
@@ -224,7 +229,7 @@ def make_reservation():
     if 'username' not in session:
         return redirect(url_for('index'))
     if 'credit_card' not in request.form:
-        return redirect(url_for('index'))
+        return render_template("error.jinja", message="You must select a credit card!")
     if request.method == 'POST':
         conn = get_connection()
         c = conn.cursor()
@@ -290,7 +295,6 @@ def cancel_search():
                        JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0}""".format(reservation_id)
         c.execute(query_str)
         result = c.fetchall()
-        print(result)
         conn.close()
         return render_template("cancel_results.jinja",
                                start_date=start_date,
@@ -351,7 +355,7 @@ def update_results():
     session['new_end_date'] = new_end_date
     query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
                    rooms.cost_of_extra_bed_per_day, r.extra_bed_selected FROM rooms_reservations r
-                   JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0} AND r.room_number_id NOT IN (SELECT room_number_id
+                   JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0} AND (r.room_number_id, r.location_id) NOT IN (SELECT room_number_id, location_id
                    FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
                    AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
                    ON resv.id=rooms_resv.reservation_id)""".format(reservation_id, new_start_date, new_end_date)
