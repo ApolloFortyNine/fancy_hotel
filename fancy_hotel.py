@@ -429,6 +429,24 @@ def add_review():
         return render_template("added_review.jinja")
 
 
+@app.route('/view_reservations_report', methods=['GET'])
+def view_reservations_report():
+    # We only have to hard code August and September
+    # https://piazza.com/class/idhxg1pbj4w7bs?cid=170
+    conn = get_connection()
+    c = conn.cursor()
+
+    query_str = """SELECT MONTH(r.start_date) AS mnth, r.location_id,
+                   COUNT(DISTINCT r.id) AS reservations
+                   FROM (SELECT id, start_date, room_number_id, location_id FROM reservations JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id WHERE is_cancelled=0) r
+                   WHERE start_date >= '2015-11-01' AND start_date <= '2015-12-31'
+                   GROUP BY MONTH(r.start_date), r.location_id"""
+    c.execute(query_str)
+    result = c.fetchall()
+    conn.close()
+    return result
+
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
