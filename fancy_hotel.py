@@ -436,16 +436,31 @@ def view_reservations_report():
     conn = get_connection()
     c = conn.cursor()
 
+    # TODO Switch these dates to '2015-08-01' to '2015-09-30'
     query_str = """SELECT MONTH(r.start_date) AS mnth, r.location_id,
                    COUNT(DISTINCT r.id) AS reservations
                    FROM (SELECT id, start_date, room_number_id, location_id FROM reservations JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id WHERE is_cancelled=0) r
                    WHERE start_date >= '2015-11-01' AND start_date <= '2015-12-31'
                    GROUP BY MONTH(r.start_date), r.location_id"""
     c.execute(query_str)
-    result = c.fetchall()
-    conn.close()
-    return result
+    result_pre_converted = c.fetchall()
+    result = []
+    k = 0
+    # Convert month number to string, using November and December for testing
+    for x in result_pre_converted:
+        result.append(list(x))
+        if result[k][0] == 11:
+            result[k][0] = "November"
+        elif result[k][0] == 12:
+            result[k][0] = "December"
+        elif result[k][0] == 8:
+            result[k][0] = "August"
+        elif result[k][0] == 9:
+            result[k][0] = "September"
+        k += 1
 
+    conn.close()
+    return render_template("view_reservations_report.jinja", result=result)
 
 @app.route('/logout')
 def logout():
