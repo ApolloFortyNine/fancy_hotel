@@ -18,7 +18,10 @@ def index():
     if request.method == 'POST':
         conn = get_connection()
         c = conn.cursor()
-        query_str = """SELECT username, password FROM customers WHERE username='{0}'""".format(request.form['username'])
+        if request.form['username'][0] != 'M':
+            query_str = """SELECT username, password FROM customers WHERE username='{0}'""".format(request.form['username'])
+        else:
+            query_str = """SELECT username, password FROM managers WHERE username='{0}'""".format(request.form['username'])
         c.execute(query_str)
         resp = c.fetchone()
         conn.close()
@@ -28,11 +31,16 @@ def index():
         password = resp[1]
         if (username == request.form['username']) and (password == request.form['password']):
             session['username'] = request.form['username']
+            if request.form['username'][0] == 'M':
+                session['manager'] = 1
             return redirect(url_for('index'))
         else:
             return 'Incorrect username or password'
     if 'username' in session:
-        return render_template('index.jinja', username=session['username'])
+        if session['username'][0] != 'M':
+            return render_template('index.jinja', username=session['username'])
+        else:
+            return render_template('manager_index.jinja', username=session['username'])
     return render_template('index_login.jinja')
 
 
