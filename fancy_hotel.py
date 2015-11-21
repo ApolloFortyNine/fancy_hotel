@@ -473,6 +473,7 @@ def popular_room_category_report():
     conn = get_connection()
     c = conn.cursor()
 
+    # TODO Switch these dates to '2015-08-01' to '2015-09-30'
     query_str = """SELECT * FROM (SELECT MONTH(r.start_date) AS mnth, r.room_category, r.location_id, COUNT(DISTINCT r.id) AS reservations_num
                    FROM (SELECT id, start_date, room_number_id, location_id, room_category FROM reservations
                    JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id
@@ -510,6 +511,7 @@ def view_revenue_report():
     conn = get_connection()
     c = conn.cursor()
 
+    # TODO Switch these dates to '2015-08-01' to '2015-09-30'
     query_str = """SELECT MONTH(r.start_date) AS mnth, r.location_id, SUM(r.total_cost) AS sum_cost
                    FROM (SELECT id, start_date, room_number_id, location_id, total_cost
                    FROM reservations JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id WHERE is_cancelled=0 GROUP BY id) r
@@ -533,7 +535,7 @@ def view_revenue_report():
         k += 1
 
     conn.close()
-    return "nothing"
+    return render_template("view_revenue_report.jinja", result=result)
 
 
 @app.route('/logout')
