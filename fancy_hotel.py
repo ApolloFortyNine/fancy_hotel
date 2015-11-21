@@ -433,6 +433,9 @@ def add_review():
 def view_reservations_report():
     # We only have to hard code August and September
     # https://piazza.com/class/idhxg1pbj4w7bs?cid=170
+    if 'manager' not in session:
+        return redirect(url_for('index'))
+
     conn = get_connection()
     c = conn.cursor()
 
@@ -461,6 +464,26 @@ def view_reservations_report():
 
     conn.close()
     return render_template("view_reservations_report.jinja", result=result)
+
+
+@app.route('/popular_room_category_report', methods=['GET'])
+def popular_room_category_report():
+    if 'manager' not in session:
+        return redirect(url_for('index'))
+    conn = get_connection()
+    c = conn.cursor()
+
+    query_str = """SELECT * FROM (SELECT MONTH(r.start_date) AS mnth, r.room_category, r.location_id, COUNT(DISTINCT r.id) AS reservations_num
+                   FROM (SELECT id, start_date, room_number_id, location_id, room_category FROM reservations
+                   JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id
+                   JOIN rooms ON rooms.room_number=rooms_reservations.room_number_id AND rooms.location=rooms_reservations.location_id
+                   WHERE is_cancelled=0) r
+                   WHERE start_date >= '2015-11-01' AND start_date <= '2015-12-31'
+                   GROUP BY MONTH(r.start_date), room_category, r.location_id
+                   ORDER BY reservations_num DESC) k
+                   GROUP BY mnth"""
+    conn.close()
+    return "nothing"
 
 @app.route('/logout')
 def logout():
