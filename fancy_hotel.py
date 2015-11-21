@@ -481,7 +481,7 @@ def popular_room_category_report():
                    WHERE start_date >= '2015-11-01' AND start_date <= '2015-12-31'
                    GROUP BY MONTH(r.start_date), room_category, r.location_id
                    ORDER BY reservations_num DESC) k
-                   GROUP BY mnth"""
+                   GROUP BY mnth, location_id"""
     conn.close()
     return "nothing"
 
