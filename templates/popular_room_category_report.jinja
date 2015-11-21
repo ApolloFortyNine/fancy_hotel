@@ -1,0 +1,26 @@
+{% extends "base.jinja" %}
+{% block content %}
+  <h5>Popular Room Category Report</h5>
+  <div class="row">
+    <table class="striped centered">
+      <thead>
+        <tr>
+          <th data-field="month">Month</th>
+          <th data-field="room_category">Top Room Category</th>
+          <th data-field="location">Location</th>
+          <th data-field="reservations">Total Number of Reservations for Room Category</th>
+        </tr>
+      </thead>
+        <tbody>
+          {% for row in result %}
+            <tr>
+              <td>{{row[0]}}</td>
+              <td>{{row[1]}}</td>
+              <td>{{row[2]}}</td>
+              <td>{{row[3]}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+  </div>
+{% endblock %}

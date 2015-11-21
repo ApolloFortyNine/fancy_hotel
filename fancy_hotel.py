@@ -482,8 +482,25 @@ def popular_room_category_report():
                    GROUP BY MONTH(r.start_date), room_category, r.location_id
                    ORDER BY reservations_num DESC) k
                    GROUP BY mnth, location_id"""
+    c.execute(query_str)
+    result_pre_converted = c.fetchall()
+    result = []
+    k = 0
+    # Convert month number to string, using November and December for testing
+    for x in result_pre_converted:
+        result.append(list(x))
+        if result[k][0] == 11:
+            result[k][0] = "November"
+        elif result[k][0] == 12:
+            result[k][0] = "December"
+        elif result[k][0] == 8:
+            result[k][0] = "August"
+        elif result[k][0] == 9:
+            result[k][0] = "September"
+        k += 1
+
     conn.close()
-    return "nothing"
+    return render_template("popular_room_category_report.jinja", result=result)
 
 @app.route('/logout')
 def logout():
