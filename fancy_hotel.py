@@ -485,6 +485,9 @@ def popular_room_category_report():
     c = conn.cursor()
 
     # TODO Switch these dates to '2015-08-01' to '2015-09-30'
+    # These queries take advantage of MySQLs implementation of GROUP BY, where it doesn't require
+    # the columns being grouped to be aggregated in someway. It instead just grabs the first row.
+    # http://stackoverflow.com/questions/12102200/get-records-with-max-value-for-each-group-of-grouped-sql-results
     query_str = """SELECT * FROM (SELECT MONTH(r.start_date) AS mnth, r.room_category, r.location_id, COUNT(DISTINCT r.id) AS reservations_num
                    FROM (SELECT id, start_date, room_number_id, location_id, room_category FROM reservations
                    JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id
