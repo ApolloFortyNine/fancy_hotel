@@ -459,6 +459,7 @@ def view_reservations_report():
     c.execute(query_str)
     result_pre_converted = c.fetchall()
     result = []
+    print(result_pre_converted)
     k = 0
     # Convert month number to string, using November and December for testing
     for x in result_pre_converted:
@@ -559,10 +560,10 @@ def logout():
 
 
 def get_connection():
-    conn = connect(host='192.227.175.138',
-                   user='fancy2',
-                   password='bubbles',
-                   db='fancy_phase_ii',
+    conn = connect(host='academic-mysql.cc.gatech.edu',
+                   user='cs4400_Group_26',
+                   password='eOAsu3N4',
+                   db='cs4400_Group_26',
                    charset='utf8')
     return conn
 
