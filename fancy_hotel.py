@@ -204,6 +204,12 @@ def add_card():
         conn = get_connection()
         c = conn.cursor()
         if 'credit_card_del' in request.form:
+            todays_date = datetime.date.today()
+            query_str = """SELECT COUNT(*) FROM reservations WHERE card_number_id='{0}' AND end_date > '{1}'""".format(request.form['credit_card_del'], str(todays_date))
+            c.execute(query_str)
+            num_paying_for = c.fetchone()[0]
+            if num_paying_for != 0:
+                return render_template("error.jinja", message="That card is currently being used for reservations that haven't ended yet!")
             query_str = """DELETE FROM cards WHERE card_number='{0}'""".format(request.form['credit_card_del'])
             c.execute(query_str)
             conn.commit()

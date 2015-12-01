@@ -52,6 +52,9 @@ INSERT INTO cards (card_number, name_on_card, expiration_date, cvv, customer_id)
 # Delete Card
 """DELETE FROM cards WHERE card_number='{0}'""".format(request.form['credit_card_del'])
 
+# To check if it's legal
+"""SELECT COUNT(*) FROM reservations WHERE card_number_id='{0}' AND end_date > '{1}'""".format(request.form['credit_card_del'], str(todays_date))
+
 # Creates drop down for selecting a card to delete
 """SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
 
