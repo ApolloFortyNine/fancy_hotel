@@ -1,0 +1,131 @@
+--- Log in
+"""SELECT username, password FROM customers WHERE username='{0}'""".format(request.form['username'])
+
+"""SELECT username, password FROM managers WHERE username='{0}'""".format(request.form['username'])
+
+-- New User Registration
+#Check for collisions
+"""SELECT username FROM customers WHERE username='{0}'""".format(request.form['username'])
+
+"""INSERT INTO customers (username, password, email)
+VALUES ('{0}', '{1}', '{2}')""".format(request.form['username'],
+                                       request.form['password'],
+                                       request.form['email'])
+
+-- Search Rooms
+"""SELECT * FROM rooms WHERE rooms.location='{0}' AND (rooms.room_number, rooms.location) NOT IN (SELECT room_number_id, location_id
+FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
+AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
+ON resv.id=rooms_resv.reservation_id)
+""".format(req_loc, req_start_date, req_end_date)
+
+# For location selection
+SELECT DISTINCT location FROM rooms
+
+-- Make Reservation
+# Select the users card numbers for a drop down box
+"""SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
+
+# Inserts
+INSERT INTO reservations (start_date, end_date, total_cost, customer_id, card_number_id)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}')""".format(session['start_date'],
+                                                                            session['end_date'],
+                                                                            session['total'],
+                                                                            session['username'],
+                                                                            request.form['credit_card'])
+
+INSERT INTO rooms_reservations (reservation_id, room_number_id, location_id, extra_bed_selected)
+                           VALUES ('{0}', '{1}', '{2}', '{3}')""".format(reservation_id,
+                                                                         x,
+                                                                         session['location'],
+                                                                         select_extra_bed)
+
+-- Payment Information
+# Add Card
+INSERT INTO cards (card_number, name_on_card, expiration_date, cvv, customer_id)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}')""".format(request.form['card_number'],
+                                                                            request.form['card_name'],
+                                                                            request.form['card_exp_date'],
+                                                                            request.form['card_cvv'],
+                                                                            session['username'])
+
+# Delete Card
+"""DELETE FROM cards WHERE card_number='{0}'""".format(request.form['credit_card_del'])
+
+# Creates drop down for selecting a card to delete
+"""SELECT card_number FROM cards WHERE customer_id='{0}'""".format(session['username'])
+
+-- Confirmation Screen
+"""SELECT LAST_INSERT_ID()"""
+
+-- Update Reservation
+# Search for users reservation ID
+"""SELECT * FROM reservations WHERE id={0}""".format(reservation_id)
+
+# Search for collisions with new dates
+"""SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
+rooms.cost_of_extra_bed_per_day, r.extra_bed_selected, r.location_id FROM rooms_reservations r
+JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id
+WHERE reservation_id={0} AND (r.room_number_id, r.location_id) NOT IN (SELECT room_number_id, location_id
+FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
+AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
+ON resv.id=rooms_resv.reservation_id WHERE resv.id<>{0})""".format(reservation_id, new_start_date, new_end_date)
+
+# Count current number of rooms
+"""SELECT count(room_number_id) FROM rooms_reservations WHERE reservation_id={0}""".format(reservation_id)
+
+-- Cancel Reservation
+# Select reservation information for determining refund
+"""SELECT * FROM reservations WHERE id={0}""".format(reservation_id)
+
+# Display rooms to be cancelled to the user
+"""SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
+rooms.cost_of_extra_bed_per_day, r.extra_bed_selected  FROM rooms_reservations r
+JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0}""".format(reservation_id)
+
+# Actually cancel the reservation
+"""UPDATE reservations SET is_cancelled=1 WHERE id={0}""".format(request.form['reservation_id'])
+
+-- View Reviews
+# For location selection
+"""SELECT DISTINCT location FROM rooms"""
+
+# For actually showing the reservations
+"""SELECT rating, comment FROM feedback WHERE location='{0}'""".format(location)
+
+-- Provide Review
+# For location selection
+"""SELECT DISTINCT location FROM rooms"""
+
+# For inserting review
+"""INSERT INTO feedback (comment, rating, location, customer_id)
+VALUES ('{0}', '{1}', '{2}', '{3}')""".format(review, rating, location, username)
+
+-- Reports
+# Reservation report
+"""SELECT MONTH(r.start_date) AS mnth, r.location_id,
+COUNT(DISTINCT r.id) AS reservations
+FROM (SELECT id, start_date, room_number_id, location_id FROM reservations JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id WHERE is_cancelled=0) r
+WHERE start_date >= '2015-08-01' AND start_date <= '2015-09-30'
+GROUP BY MONTH(r.start_date), r.location_id
+ORDER BY r.start_date ASC"""
+
+# Popular Room Category Report
+"""SELECT * FROM (SELECT MONTH(r.start_date) AS mnth, r.room_category, r.location_id, COUNT(DISTINCT r.id) AS reservations_num
+FROM (SELECT id, start_date, room_number_id, location_id, room_category FROM reservations
+JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id
+JOIN rooms ON rooms.room_number=rooms_reservations.room_number_id AND rooms.location=rooms_reservations.location_id
+WHERE is_cancelled=0) r
+WHERE start_date >= '2015-08-01' AND start_date <= '2015-09-30'
+GROUP BY MONTH(r.start_date), room_category, r.location_id
+ORDER BY reservations_num DESC) k
+GROUP BY mnth, location_id
+ORDER BY mnth ASC"""
+
+# View Revenue Report
+"""SELECT MONTH(r.start_date) AS mnth, r.location_id, SUM(r.total_cost) AS sum_cost
+FROM (SELECT id, start_date, room_number_id, location_id, total_cost
+FROM reservations JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id WHERE is_cancelled=0 GROUP BY id) r
+WHERE start_date >= '2015-08-01' AND start_date <= '2015-09-30'
+GROUP BY MONTH(r.start_date), r.location_id
+ORDER BY r.start_date ASC"""
