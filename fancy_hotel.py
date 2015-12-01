@@ -459,7 +459,6 @@ def view_reservations_report():
     c.execute(query_str)
     result_pre_converted = c.fetchall()
     result = []
-    print(result_pre_converted)
     k = 0
     # Convert month number to string, using November and December for testing
     for x in result_pre_converted:
