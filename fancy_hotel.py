@@ -464,7 +464,8 @@ def view_reservations_report():
                    COUNT(DISTINCT r.id) AS reservations
                    FROM (SELECT id, start_date, room_number_id, location_id FROM reservations JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id WHERE is_cancelled=0) r
                    WHERE start_date >= '2015-08-01' AND start_date <= '2015-09-30'
-                   GROUP BY MONTH(r.start_date), r.location_id"""
+                   GROUP BY MONTH(r.start_date), r.location_id
+                   ORDER BY r.start_date ASC"""
     c.execute(query_str)
     result_pre_converted = c.fetchall()
     result = []
@@ -505,7 +506,8 @@ def popular_room_category_report():
                    WHERE start_date >= '2015-08-01' AND start_date <= '2015-09-30'
                    GROUP BY MONTH(r.start_date), room_category, r.location_id
                    ORDER BY reservations_num DESC) k
-                   GROUP BY mnth, location_id"""
+                   GROUP BY mnth, location_id
+                   ORDER BY mnth ASC"""
     c.execute(query_str)
     result_pre_converted = c.fetchall()
     result = []
@@ -539,7 +541,8 @@ def view_revenue_report():
                    FROM (SELECT id, start_date, room_number_id, location_id, total_cost
                    FROM reservations JOIN rooms_reservations ON rooms_reservations.reservation_id=reservations.id WHERE is_cancelled=0 GROUP BY id) r
                    WHERE start_date >= '2015-08-01' AND start_date <= '2015-09-30'
-                   GROUP BY MONTH(r.start_date), r.location_id"""
+                   GROUP BY MONTH(r.start_date), r.location_id
+                   ORDER BY r.start_date ASC"""
     c.execute(query_str)
     result_pre_converted = c.fetchall()
     result = []
