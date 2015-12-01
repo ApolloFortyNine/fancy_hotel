@@ -353,11 +353,11 @@ def update_results():
     session['new_start_date'] = new_start_date
     session['new_end_date'] = new_end_date
     query_str = """SELECT r.room_number_id, rooms.room_category, rooms.persons_allowed, rooms.cost_per_day,
-                   rooms.cost_of_extra_bed_per_day, r.extra_bed_selected FROM rooms_reservations r
+                   rooms.cost_of_extra_bed_per_day, r.extra_bed_selected, r.location_id FROM rooms_reservations r
                    JOIN rooms ON rooms.room_number=r.room_number_id AND rooms.location=r.location_id WHERE reservation_id={0} AND (r.room_number_id, r.location_id) NOT IN (SELECT room_number_id, location_id
                    FROM (SELECT id FROM reservations WHERE is_cancelled=0 AND (((start_date >= '{1}') AND (end_date <= '{2}')) OR ((end_date > '{1}')
                    AND (start_date < '{2}')))) resv JOIN rooms_reservations rooms_resv
-                   ON resv.id=rooms_resv.reservation_id)""".format(reservation_id, new_start_date, new_end_date)
+                   ON resv.id=rooms_resv.reservation_id WHERE resv.id<>{0})""".format(reservation_id, new_start_date, new_end_date)
     c.execute(query_str)
     rooms_available = c.fetchall()
 
@@ -366,10 +366,19 @@ def update_results():
     num_rooms_booked = c.fetchone()[0]
     if num_rooms_booked != len(rooms_available):
         return render_template("error.jinja", message="Your previously booked rooms are not available on those days. Please cancel and remake the reservation.")
+    total = 0
+    start_date_dt = datetime.datetime.strptime(session['new_start_date'], "%Y-%m-%d").date()
+    end_date_dt = datetime.datetime.strptime(session['new_end_date'], "%Y-%m-%d").date()
+    num_days = (end_date_dt - start_date_dt).days
+    for x in rooms_available:
+        query_str = """SELECT * FROM rooms WHERE room_number={0} AND location='{1}'""".format(x[0], x[6])
+        c.execute(query_str)
+        result = c.fetchone()
+        if x[5] == 1:
+            total += result[4]
+        total += result[3]
+    total = total * num_days
 
-    query_str = """SELECT total_cost FROM reservations WHERE id={0}""".format(reservation_id)
-    c.execute(query_str)
-    total = c.fetchone()[0]
     conn.close()
     return render_template("update_results.jinja", rooms=rooms_available, reservation_id=reservation_id, total=total)
 
